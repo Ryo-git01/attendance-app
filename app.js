@@ -218,6 +218,27 @@ function getMonthKeys() {
   return keys;
 }
 
+
+function restoreAttendanceState() {
+  const pending = state.pendingClockIn;
+
+  if (!pending) return;
+
+  const record = data[pending.date];
+
+  // 保留中の出勤情報と実データが一致しない場合は状態をリセット
+  if (
+    !pending.date ||
+    !pending.clockIn ||
+    !record ||
+    record.clockIn !== pending.clockIn ||
+    record.clockOut
+  ) {
+    state.pendingClockIn = null;
+    saveState();
+  }
+}
+
 function cleanupOldMonths() {
   const validMonths = new Set(getMonthKeys());
 
