@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#68785a">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="勤怠管理">
+  <title>勤怠管理</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="app">
+    <section id="homeScreen" class="screen active">
+      <div class="home-content">
+        <div class="action-row">
+          <button id="clockInBtn" class="action-btn">出勤</button>
+          <button id="clockOutBtn" class="action-btn" disabled>退勤</button>
+        </div>
+
+        <div id="stampDisplay" class="stamp-display" aria-live="polite"></div>
+
+        <button id="attendanceBtn" class="attendance-btn">勤怠確認</button>
+      </div>
+    </section>
+
+    <section id="attendanceScreen" class="screen">
+      <header class="screen-header">
+        <button id="backBtn" class="back-btn" aria-label="戻る">‹</button>
+        <h1>勤怠確認</h1>
+        <div class="header-spacer"></div>
+      </header>
+
+      <div class="month-tabs" id="monthTabs"></div>
+
+      <div class="table-wrap">
+        <table class="attendance-table">
+          <thead>
+            <tr>
+              <th>日付</th>
+              <th>出勤</th>
+              <th>退勤</th>
+              <th>休憩</th>
+              <th>実働</th>
+            </tr>
+          </thead>
+          <tbody id="attendanceBody"></tbody>
+        </table>
+        <div id="emptyMessage" class="empty-message">記録はありません</div>
+      </div>
+
+      <div class="edit-area">
+        <button id="editBtn" class="secondary-btn">編集</button>
+      </div>
+    </section>
+  </main>
+
+  <!-- 休憩時間入力 -->
+  <div id="breakModal" class="modal" aria-hidden="true">
+    <div class="modal-backdrop"></div>
+    <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="breakTitle">
+      <h2 id="breakTitle">休憩時間</h2>
+      <div class="number-input-row">
+        <input id="breakInput" type="number" inputmode="numeric" min="0" step="1" value="0" aria-label="休憩時間">
+        <span>分</span>
+      </div>
+      <button id="registerBtn" class="primary-btn">登録</button>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

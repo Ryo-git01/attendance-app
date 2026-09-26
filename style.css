@@ -1,0 +1,386 @@
+:root {
+  --paper: #f4f0e7;
+  --surface: #fffdf8;
+  --ink: #20241f;
+  --muted: #77796f;
+  --line: #ddd7ca;
+  --accent: #68785a;
+  --dark: #435039;
+  --soft: #e3e8da;
+  --disabled: #c9c9c4;
+  --danger: #984c3d;
+  --shadow: 0 8px 24px rgba(40, 45, 35, 0.08);
+}
+
+* {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html {
+  background: var(--paper);
+}
+
+body {
+  min-height: 100vh;
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Yu Gothic", sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+button,
+input {
+  font: inherit;
+}
+
+button {
+  touch-action: manipulation;
+}
+
+.app {
+  width: 100%;
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+
+.screen {
+  display: none;
+  min-height: 100vh;
+  min-height: 100dvh;
+  padding:
+    max(24px, env(safe-area-inset-top))
+    18px
+    max(28px, env(safe-area-inset-bottom))
+    18px;
+}
+
+.screen.active {
+  display: block;
+}
+
+#homeScreen {
+  display: none;
+  align-items: center;
+  justify-content: center;
+}
+
+#homeScreen.active {
+  display: flex;
+}
+
+.home-content {
+  width: min(100%, 430px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.action-row {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.action-btn {
+  min-height: 86px;
+  border: 2px solid var(--accent);
+  border-radius: 18px;
+  background: var(--surface);
+  color: var(--dark);
+  font-size: 25px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  box-shadow: var(--shadow);
+}
+
+.action-btn:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.action-btn:disabled {
+  border-color: var(--disabled);
+  background: #e8e8e4;
+  color: #999991;
+  box-shadow: none;
+}
+
+.stamp-display {
+  height: 76px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--dark);
+  font-size: 29px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+.stamp-display.show {
+  opacity: 1;
+}
+
+.attendance-btn {
+  margin-top: 6px;
+  min-width: 190px;
+  min-height: 58px;
+  padding: 0 28px;
+  border: 2px solid var(--accent);
+  border-radius: 15px;
+  background: var(--accent);
+  color: white;
+  font-size: 19px;
+  font-weight: 700;
+  box-shadow: var(--shadow);
+}
+
+.attendance-btn:active,
+.primary-btn:active,
+.secondary-btn:active {
+  transform: scale(0.98);
+}
+
+.screen-header {
+  width: 100%;
+  max-width: 760px;
+  margin: 0 auto 18px;
+  display: grid;
+  grid-template-columns: 48px 1fr 48px;
+  align-items: center;
+}
+
+.screen-header h1 {
+  margin: 0;
+  text-align: center;
+  font-size: 23px;
+  letter-spacing: 0.06em;
+}
+
+.back-btn {
+  width: 44px;
+  height: 44px;
+  border: 0;
+  background: transparent;
+  color: var(--dark);
+  font-size: 42px;
+  line-height: 1;
+}
+
+.header-spacer {
+  width: 44px;
+  height: 44px;
+}
+
+.month-tabs {
+  width: 100%;
+  max-width: 760px;
+  margin: 0 auto 14px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  overflow: hidden;
+  background: var(--surface);
+}
+
+.month-tab {
+  min-height: 52px;
+  border: 0;
+  border-right: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--muted);
+  font-weight: 700;
+}
+
+.month-tab:last-child {
+  border-right: 0;
+}
+
+.month-tab.active {
+  background: var(--accent);
+  color: white;
+}
+
+.table-wrap {
+  width: 100%;
+  max-width: 760px;
+  margin: 0 auto;
+  overflow-x: auto;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.attendance-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 520px;
+}
+
+.attendance-table th,
+.attendance-table td {
+  padding: 13px 8px;
+  border-bottom: 1px solid var(--line);
+  text-align: center;
+  white-space: nowrap;
+}
+
+.attendance-table th {
+  background: #f1eee6;
+  color: var(--dark);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.attendance-table td {
+  font-size: 15px;
+}
+
+.attendance-table tr:last-child td {
+  border-bottom: 0;
+}
+
+.editable-cell {
+  cursor: text;
+  background: #fffdf8;
+}
+
+.editable-input {
+  width: 100%;
+  min-width: 62px;
+  height: 38px;
+  padding: 0 5px;
+  border: 1px solid var(--accent);
+  border-radius: 8px;
+  background: white;
+  color: var(--ink);
+  text-align: center;
+  outline: none;
+}
+
+.break-edit-input {
+  min-width: 68px;
+}
+
+.empty-message {
+  display: none;
+  padding: 34px 16px;
+  text-align: center;
+  color: var(--muted);
+}
+
+.empty-message.show {
+  display: block;
+}
+
+.edit-area {
+  width: 100%;
+  max-width: 760px;
+  margin: 28px auto 0;
+  padding-bottom: 8px;
+  display: flex;
+  justify-content: center;
+}
+
+.secondary-btn,
+.primary-btn {
+  min-height: 52px;
+  border-radius: 13px;
+  font-weight: 700;
+  border: 2px solid var(--accent);
+}
+
+.secondary-btn {
+  min-width: 130px;
+  padding: 0 26px;
+  background: var(--surface);
+  color: var(--dark);
+}
+
+.primary-btn {
+  width: 100%;
+  background: var(--accent);
+  color: white;
+}
+
+.modal {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.modal.show {
+  display: flex;
+}
+
+.modal-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(25, 28, 22, 0.32);
+}
+
+.modal-card {
+  position: relative;
+  width: min(100%, 360px);
+  padding: 26px 22px 22px;
+  border-radius: 20px;
+  background: var(--surface);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.18);
+}
+
+.modal-card h2 {
+  margin: 0 0 20px;
+  text-align: center;
+  font-size: 21px;
+}
+
+.number-input-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 22px;
+}
+
+.number-input-row input {
+  width: 145px;
+  height: 58px;
+  border: 2px solid var(--line);
+  border-radius: 12px;
+  background: white;
+  color: var(--ink);
+  text-align: center;
+  font-size: 25px;
+  outline: none;
+}
+
+.number-input-row input:focus {
+  border-color: var(--accent);
+}
+
+.number-input-row span {
+  font-size: 19px;
+  font-weight: 700;
+}
+
+@media (max-width: 390px) {
+  .action-btn {
+    min-height: 78px;
+    font-size: 22px;
+  }
+
+  .attendance-table th,
+  .attendance-table td {
+    padding-left: 6px;
+    padding-right: 6px;
+  }
+}
