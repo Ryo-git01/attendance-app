@@ -52,6 +52,32 @@
 
       <div class="edit-area">
         <button id="editBtn" class="secondary-btn">編集</button>
+        <button id="salaryBtn" class="secondary-btn salary-open-btn">給与計算</button>
+      </div>
+    </section>
+
+    <section id="salaryScreen" class="screen">
+      <header class="screen-header">
+        <button id="salaryBackBtn" class="back-btn" aria-label="戻る">‹</button>
+        <h1>給与計算</h1>
+        <div class="header-spacer"></div>
+      </header>
+      <div class="salary-content">
+        <div class="salary-total">
+          <div id="salaryMonthLabel" class="salary-month-label">10月分</div>
+          <div class="salary-total-label">総支給額（概算）</div>
+          <div id="grossPay" class="gross-pay">0円</div>
+        </div>
+        <div class="salary-summary">
+          <div class="salary-stat"><div class="salary-stat-label">出勤日数</div><div id="attendanceDays" class="salary-stat-value">0日</div></div>
+          <div class="salary-stat"><div class="salary-stat-label">60時間まで</div><div id="overtimeUnder60" class="salary-stat-value">0円</div></div>
+          <div class="salary-stat"><div class="salary-stat-label">60時間超</div><div id="overtimeOver60" class="salary-stat-value">0円</div></div>
+        </div>
+        <div class="salary-rate-row">
+          <div><div class="salary-rate-label">残業元単価</div><div id="baseRateDisplay" class="salary-rate-value">1,402円</div></div>
+          <button id="settingsBtn" class="secondary-btn">単価設定</button>
+        </div>
+        <p class="salary-note">※概算表示です。休日出勤の割増計算は含みません。</p>
       </div>
     </section>
   </main>
@@ -66,6 +92,17 @@
         <span>分</span>
       </div>
       <button id="registerBtn" class="primary-btn">登録</button>
+    </div>
+  </div>
+
+  <div id="settingsModal" class="modal" aria-hidden="true">
+    <div class="modal-backdrop" data-close-settings="true"></div>
+    <div class="modal-card settings-card" role="dialog" aria-modal="true" aria-labelledby="settingsTitle">
+      <h2 id="settingsTitle">単価設定</h2>
+      <label class="setting-field"><span>残業元単価（円）</span><input id="rateSetting" type="number" inputmode="decimal" min="0" step="0.01"></label>
+      <label class="setting-field"><span>手当（円）</span><input id="allowanceSetting" type="number" inputmode="numeric" min="0" step="1"></label>
+      <label class="setting-field"><span>交通費（円／日）</span><input id="transportSetting" type="number" inputmode="numeric" min="0" step="1"></label>
+      <div class="settings-actions"><button id="cancelSettingsBtn" class="secondary-btn">キャンセル</button><button id="saveSettingsBtn" class="primary-btn">保存</button></div>
     </div>
   </div>
 

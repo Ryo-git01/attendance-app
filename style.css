@@ -264,7 +264,9 @@ button {
 }
 
 .break-edit-input {
-  min-width: 68px;
+  min-width: 0;
+  width: 100%;
+  max-width: 100%;
 }
 
 .empty-message {
@@ -284,8 +286,12 @@ button {
   margin: 28px auto 0;
   padding-bottom: 8px;
   display: flex;
-  justify-content: center;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
 }
+
+.salary-open-btn { background: var(--accent); color: white; }
 
 .secondary-btn,
 .primary-btn {
@@ -384,3 +390,25 @@ button {
     padding-right: 6px;
   }
 }
+
+
+/* 給与計算画面 */
+.salary-content { width: 100%; max-width: 560px; margin: 0 auto; }
+.salary-total { padding: 22px 16px 24px; border-radius: 18px; background: var(--accent); color: white; text-align: center; box-shadow: var(--shadow); }
+.salary-month-label { margin-bottom: 10px; font-size: 14px; opacity: .9; }
+.salary-total-label { font-size: 16px; font-weight: 700; }
+.gross-pay { margin-top: 8px; font-size: clamp(30px, 8vw, 42px); font-weight: 800; letter-spacing: .02em; overflow-wrap: anywhere; }
+.salary-summary { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-top: 16px; }
+.salary-stat { min-width: 0; padding: 13px 7px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); text-align: center; }
+.salary-stat-label { min-height: 2.7em; display: flex; align-items: center; justify-content: center; font-size: 12px; color: var(--muted); }
+.salary-stat-value { margin-top: 5px; font-size: clamp(15px, 4vw, 19px); font-weight: 800; overflow-wrap: anywhere; }
+.salary-rate-row { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-top: 20px; padding: 16px; border: 1px solid var(--line); border-radius: 14px; background: var(--surface); }
+.salary-rate-label { color: var(--muted); font-size: 13px; }
+.salary-rate-value { margin-top: 3px; font-size: 23px; font-weight: 800; }
+.salary-note { margin: 14px 4px; color: var(--muted); font-size: 12px; line-height: 1.6; }
+.settings-card { display: flex; flex-direction: column; gap: 14px; }
+.setting-field { display: flex; flex-direction: column; gap: 7px; font-size: 14px; font-weight: 700; }
+.setting-field input { width: 100%; height: 48px; padding: 0 12px; border: 1px solid var(--line); border-radius: 10px; background: white; color: var(--ink); font-size: 18px; }
+.settings-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 8px; }
+.settings-actions .secondary-btn, .settings-actions .primary-btn { min-width: 0; padding: 0 10px; }
+@media (max-width: 390px) { .salary-stat { padding-left: 4px; padding-right: 4px; } .salary-stat-label { font-size: 11px; } }

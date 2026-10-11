@@ -1,13 +1,22 @@
 const STORAGE_KEY = "attendanceAppData_v1";
 const STATE_KEY = "attendanceAppState_v1";
+const SALARY_SETTINGS_KEY = "attendanceSalarySettings_v1";
+const DEFAULT_SALARY_SETTINGS = { baseRate: 1402, allowance: 30000, transportPerDay: 250 };
+const FIXED_BASE_SALARY = 188320;
 
 let data = loadData();
 let state = loadState();
 let selectedMonthKey = getMonthKey(new Date());
 let isEditing = false;
+let salarySettings = loadSalarySettings();
 
 const homeScreen = document.getElementById("homeScreen");
 const attendanceScreen = document.getElementById("attendanceScreen");
+const salaryScreen = document.getElementById("salaryScreen");
+const salaryBtn = document.getElementById("salaryBtn");
+const salaryBackBtn = document.getElementById("salaryBackBtn");
+const settingsBtn = document.getElementById("settingsBtn");
+const settingsModal = document.getElementById("settingsModal");
 const clockInBtn = document.getElementById("clockInBtn");
 const clockOutBtn = document.getElementById("clockOutBtn");
 const stampDisplay = document.getElementById("stampDisplay");
@@ -32,8 +41,37 @@ attendanceBtn.addEventListener("click", openAttendance);
 backBtn.addEventListener("click", closeAttendance);
 registerBtn.addEventListener("click", registerClockOut);
 editBtn.addEventListener("click", toggleEditMode);
+salaryBtn.addEventListener("click", openSalary);
+salaryBackBtn.addEventListener("click", closeSalary);
+settingsBtn.addEventListener("click", openSettings);
+document.getElementById("cancelSettingsBtn").addEventListener("click", closeSettings);
+document.getElementById("saveSettingsBtn").addEventListener("click", saveSettingsFromModal);
+settingsModal.querySelector('[data-close-settings="true"]').addEventListener("click", closeSettings);
 
 breakModal.querySelector(".modal-backdrop").addEventListener("click", closeBreakModal);
+
+function loadSalarySettings() {
+  try {
+    const raw = localStorage.getItem(SALARY_SETTINGS_KEY);
+    const saved = raw ? JSON.parse(raw) : {};
+    return {
+      baseRate: validNonNegativeNumber(saved.baseRate, DEFAULT_SALARY_SETTINGS.baseRate),
+      allowance: validNonNegativeNumber(saved.allowance, DEFAULT_SALARY_SETTINGS.allowance),
+      transportPerDay: validNonNegativeNumber(saved.transportPerDay, DEFAULT_SALARY_SETTINGS.transportPerDay)
+    };
+  } catch {
+    return { ...DEFAULT_SALARY_SETTINGS };
+  }
+}
+
+function validNonNegativeNumber(value, fallback) {
+  const n = Number(value);
+  return value !== null && value !== "" && Number.isFinite(n) && n >= 0 ? n : fallback;
+}
+
+function saveSalarySettings() {
+  localStorage.setItem(SALARY_SETTINGS_KEY, JSON.stringify(salarySettings));
+}
 
 function loadData() {
   try {
@@ -194,6 +232,7 @@ function openAttendance() {
   selectedMonthKey = getMonthKey(new Date());
 
   homeScreen.classList.remove("active");
+  salaryScreen.classList.remove("active");
   attendanceScreen.classList.add("active");
 
   renderAttendance();
@@ -202,8 +241,106 @@ function openAttendance() {
 function closeAttendance() {
   isEditing = false;
   attendanceScreen.classList.remove("active");
+  salaryScreen.classList.remove("active");
   homeScreen.classList.add("active");
   renderHomeState();
+}
+
+function openSalary() {
+  attendanceScreen.classList.remove("active");
+  salaryScreen.classList.add("active");
+  renderSalary();
+}
+
+function closeSalary() {
+  salaryScreen.classList.remove("active");
+  attendanceScreen.classList.add("active");
+  renderAttendance();
+}
+
+function openSettings() {
+  document.getElementById("rateSetting").value = salarySettings.baseRate;
+  document.getElementById("allowanceSetting").value = salarySettings.allowance;
+  document.getElementById("transportSetting").value = salarySettings.transportPerDay;
+  settingsModal.classList.add("show");
+  settingsModal.setAttribute("aria-hidden", "false");
+}
+
+function closeSettings() {
+  settingsModal.classList.remove("show");
+  settingsModal.setAttribute("aria-hidden", "true");
+}
+
+function saveSettingsFromModal() {
+  const baseRate = Number(document.getElementById("rateSetting").value);
+  const allowance = Number(document.getElementById("allowanceSetting").value);
+  const transportPerDay = Number(document.getElementById("transportSetting").value);
+  if (![baseRate, allowance, transportPerDay].every(n => Number.isFinite(n) && n >= 0)) return;
+  salarySettings = { baseRate, allowance, transportPerDay };
+  saveSalarySettings();
+  closeSettings();
+  renderSalary();
+}
+
+function renderSalary() {
+  const month = parseMonthKey(selectedMonthKey);
+  document.getElementById("salaryMonthLabel").textContent = `${month.getFullYear()}年${month.getMonth() + 1}月分`;
+  const records = getRecordsForMonth(selectedMonthKey);
+  const complete = records.filter(r => timeToMinutes(r.clockIn) != null && timeToMinutes(r.clockOut) != null && Number.isFinite(Number(r.breakMinutes)) && Number(r.breakMinutes) >= 0 && calculateActualMinutes(r) != null);
+  const attendanceDays = records.filter(r => timeToMinutes(r.clockIn) != null).length;
+  const overtimeMinutes = calculateMonthlyOvertimeMinutes(selectedMonthKey, complete);
+  const first60 = Math.min(overtimeMinutes, 60 * 60);
+  const over60 = Math.max(0, overtimeMinutes - 60 * 60);
+  const overtimePayUnder60 = Math.round((salarySettings.baseRate * 1.25 * first60) / 60);
+  const overtimePayOver60 = Math.round((salarySettings.baseRate * 1.5 * over60) / 60);
+  const transport = attendanceDays * salarySettings.transportPerDay;
+  const gross = Math.round(FIXED_BASE_SALARY + salarySettings.allowance + transport + overtimePayUnder60 + overtimePayOver60);
+  document.getElementById("attendanceDays").textContent = `${attendanceDays}日`;
+  document.getElementById("overtimeUnder60").textContent = `${overtimePayUnder60.toLocaleString("ja-JP")}円`;
+  document.getElementById("overtimeOver60").textContent = `${overtimePayOver60.toLocaleString("ja-JP")}円`;
+  document.getElementById("baseRateDisplay").textContent = `${salarySettings.baseRate.toLocaleString("ja-JP")}円`;
+  document.getElementById("grossPay").textContent = `${gross.toLocaleString("ja-JP")}円`;
+}
+
+function calculateActualMinutes(record) {
+  const start = timeToMinutes(record.clockIn);
+  const end = timeToMinutes(record.clockOut);
+  const breakMinutes = Number(record.breakMinutes);
+  if (start == null || end == null || !Number.isFinite(breakMinutes) || breakMinutes < 0) return null;
+  const minutes = end - start - breakMinutes;
+  return minutes >= 0 ? minutes : null;
+}
+
+function calculateMonthlyOvertimeMinutes(monthKey, completeRecords) {
+  // 日8時間超を先に集計し、週40時間超は日次残業を除いた労働時間に対して追加計上する。
+  // 週の区切りは月曜日始まりとして概算する。
+  const recordsByDate = new Map(completeRecords.map(r => [r.date, calculateActualMinutes(r)]));
+  let dailyOvertime = 0;
+  const dates = [...recordsByDate.keys()].sort();
+  for (const dateKey of dates) {
+    const minutes = recordsByDate.get(dateKey);
+    dailyOvertime += Math.max(0, minutes - 480);
+  }
+
+  let weeklyAdditional = 0;
+  const weekTotals = new Map();
+  const weekDates = new Map();
+  for (const dateKey of dates) {
+    const [y, m, d] = dateKey.split("-").map(Number);
+    const date = new Date(y, m - 1, d);
+    const monday = new Date(y, m - 1, d);
+    const day = (monday.getDay() + 6) % 7;
+    monday.setDate(monday.getDate() - day);
+    const weekKey = getDateKey(monday);
+    const minutes = recordsByDate.get(dateKey);
+    weekTotals.set(weekKey, (weekTotals.get(weekKey) || 0) + minutes);
+    weekDates.set(weekKey, (weekDates.get(weekKey) || 0) + Math.max(0, minutes - 480));
+  }
+  for (const [weekKey, total] of weekTotals) {
+    // 月をまたぐ週は保持されている範囲内の記録だけで判定するため概算。
+    weeklyAdditional += Math.max(0, total - 2400 - (weekDates.get(weekKey) || 0));
+  }
+  return dailyOvertime + weeklyAdditional;
 }
 
 function getMonthKeys() {
