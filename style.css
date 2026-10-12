@@ -266,8 +266,11 @@ button {
 .break-edit-input {
   min-width: 0;
   width: 100%;
-  max-width: 100%;
+  max-width: 78px;
+  display: block;
+  margin: 0 auto;
 }
+.salary-summary { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 
 .empty-message {
   display: none;
@@ -402,6 +405,7 @@ button {
 .salary-stat { min-width: 0; padding: 13px 7px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); text-align: center; }
 .salary-stat-label { min-height: 2.7em; display: flex; align-items: center; justify-content: center; font-size: 12px; color: var(--muted); }
 .salary-stat-value { margin-top: 5px; font-size: clamp(15px, 4vw, 19px); font-weight: 800; overflow-wrap: anywhere; }
+.salary-stat-pay { margin-top: 4px; font-size: 13px; font-weight: 700; overflow-wrap: anywhere; }
 .salary-rate-row { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-top: 20px; padding: 16px; border: 1px solid var(--line); border-radius: 14px; background: var(--surface); }
 .salary-rate-label { color: var(--muted); font-size: 13px; }
 .salary-rate-value { margin-top: 3px; font-size: 23px; font-weight: 800; }

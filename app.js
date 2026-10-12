@@ -288,18 +288,73 @@ function renderSalary() {
   const records = getRecordsForMonth(selectedMonthKey);
   const complete = records.filter(r => timeToMinutes(r.clockIn) != null && timeToMinutes(r.clockOut) != null && Number.isFinite(Number(r.breakMinutes)) && Number(r.breakMinutes) >= 0 && calculateActualMinutes(r) != null);
   const attendanceDays = records.filter(r => timeToMinutes(r.clockIn) != null).length;
-  const overtimeMinutes = calculateMonthlyOvertimeMinutes(selectedMonthKey, complete);
-  const first60 = Math.min(overtimeMinutes, 60 * 60);
-  const over60 = Math.max(0, overtimeMinutes - 60 * 60);
-  const overtimePayUnder60 = Math.round((salarySettings.baseRate * 1.25 * first60) / 60);
-  const overtimePayOver60 = Math.round((salarySettings.baseRate * 1.5 * over60) / 60);
+  const totalWorkMinutes = complete.reduce((sum, r) => sum + calculateActualMinutes(r), 0);
+  const scheduledMinutes = attendanceDays * 480;
+  const excessMinutes = Math.max(0, totalWorkMinutes - scheduledMinutes);
+  const displayUnder60 = Math.min(excessMinutes, 60 * 60);
+  const displayOver60 = Math.max(0, excessMinutes - 60 * 60);
+
+  // 金額は日ごとの8時間超過と、日次残業と重複しない週40時間超過から計算する。
+  // 月内で時系列に並べ、月間の法定時間外労働が60時間を超えた部分を1.5倍にする。
+  const overtimeByDate = calculateOvertimeByDate(selectedMonthKey, complete);
+  let cumulativeOvertime = 0;
+  let overtimePayUnder60 = 0;
+  let overtimePayOver60 = 0;
+  for (const item of overtimeByDate) {
+    let remaining = item.minutes;
+    const under = Math.min(remaining, Math.max(0, 3600 - cumulativeOvertime));
+    remaining -= under;
+    const over = remaining;
+    overtimePayUnder60 += salarySettings.baseRate * 1.25 * under / 60;
+    overtimePayOver60 += salarySettings.baseRate * 1.5 * over / 60;
+    cumulativeOvertime += item.minutes;
+  }
+  overtimePayUnder60 = Math.round(overtimePayUnder60);
+  overtimePayOver60 = Math.round(overtimePayOver60);
   const transport = attendanceDays * salarySettings.transportPerDay;
   const gross = Math.round(FIXED_BASE_SALARY + salarySettings.allowance + transport + overtimePayUnder60 + overtimePayOver60);
+  const hours = minutes => `${(minutes / 60).toLocaleString("ja-JP", { maximumFractionDigits: 2 })}時間`;
   document.getElementById("attendanceDays").textContent = `${attendanceDays}日`;
+  document.getElementById("totalWorkHours").textContent = hours(totalWorkMinutes);
+  document.getElementById("scheduledWorkHours").textContent = hours(scheduledMinutes);
+  document.getElementById("overtimeUnder60Hours").textContent = hours(displayUnder60);
+  document.getElementById("overtimeOver60Hours").textContent = hours(displayOver60);
   document.getElementById("overtimeUnder60").textContent = `${overtimePayUnder60.toLocaleString("ja-JP")}円`;
   document.getElementById("overtimeOver60").textContent = `${overtimePayOver60.toLocaleString("ja-JP")}円`;
+  document.getElementById("transportPay").textContent = `${transport.toLocaleString("ja-JP")}円`;
   document.getElementById("baseRateDisplay").textContent = `${salarySettings.baseRate.toLocaleString("ja-JP")}円`;
   document.getElementById("grossPay").textContent = `${gross.toLocaleString("ja-JP")}円`;
+}
+
+function calculateOvertimeByDate(monthKey, completeRecords) {
+  const records = [...completeRecords].sort((a, b) => a.date.localeCompare(b.date));
+  const dailyOvertime = new Map();
+  const weekly = new Map();
+  for (const record of records) {
+    const actual = calculateActualMinutes(record);
+    const daily = Math.max(0, actual - 480);
+    dailyOvertime.set(record.date, daily);
+    const [y, m, d] = record.date.split("-").map(Number);
+    const monday = new Date(y, m - 1, d);
+    monday.setDate(monday.getDate() - ((monday.getDay() + 6) % 7));
+    const weekKey = getDateKey(monday);
+    if (!weekly.has(weekKey)) weekly.set(weekKey, []);
+    weekly.get(weekKey).push({ date: record.date, actual, daily });
+  }
+  const extraByDate = new Map();
+  for (const days of weekly.values()) {
+    let total = 0;
+    for (const day of days) total += day.actual;
+    let extra = Math.max(0, total - 2400 - days.reduce((sum, day) => sum + day.daily, 0));
+    // 週40時間超の追加分は、日次8時間超を除いた時間のうち後ろの日から配分。
+    for (let i = days.length - 1; i >= 0 && extra > 0; i--) {
+      const eligible = Math.max(0, days[i].actual - days[i].daily);
+      const assigned = Math.min(extra, eligible);
+      extraByDate.set(days[i].date, (extraByDate.get(days[i].date) || 0) + assigned);
+      extra -= assigned;
+    }
+  }
+  return records.map(record => ({ date: record.date, minutes: (dailyOvertime.get(record.date) || 0) + (extraByDate.get(record.date) || 0) }));
 }
 
 function calculateActualMinutes(record) {
